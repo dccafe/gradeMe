@@ -1,7 +1,7 @@
 import os
 import sqlite3
 
-from flask import Flask, Response, flash, redirect, render_template, request, session, g
+from flask import Flask, Response, redirect, render_template, request, session, g
 from flask_session import Session
 
 from werkzeug.utils    import secure_filename
@@ -124,20 +124,17 @@ def check():
 
     # Request is a POST (get the file)
     if 'file' not in request.files:
-        flash('No file part')
-        return redirect(request.url)
+        return apology('No file part')
     
     file = request.files['file']
 
     if file.filename == '':
-        flash('No file provided')
-        return redirect(request.url)
+        return apology('No file provided')
 
     filename = secure_filename(file.filename)
 
     if not allowed_file(filename):
-        flash('Wrong file name or extension')
-        return redirect(request.url)
+        return apology('Wrong file name or extension')
 
     mod      = int(filename[1])
     num      = int(filename[4:6])
