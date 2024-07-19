@@ -1,0 +1,23 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Manage
+{% endblock %}
+
+{% block main %}
+
+    <form action="/setPeriod" method="post">
+        <div class="mb-3">
+            <input autofocus class="form-control mx-auto w-auto" list="period" name="period" placeholder="{{active_period}}" type="text">
+            <datalist id="period">
+                {% for p in periods %}
+              <option>{{p}}</option>
+                {% endfor %}
+            </datalist>
+
+        </div>
+        <button class="btn btn-primary" type="submit">Change/Create</button>
+    </form>
+
+
+{% endblock %}

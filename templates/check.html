@@ -1,0 +1,14 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Check
+{% endblock %}
+
+{% block main %}
+    <form action="/check" method="post" enctype=multipart/form-data >
+        <div class="mb-3">
+            <input class="form-control mx-auto w-auto" name="file" placeholder="Exercise file" type="file">
+        </div>
+        <button class="btn btn-primary" type="submit">Check</button>
+    </form>
+{% endblock %}

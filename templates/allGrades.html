@@ -1,0 +1,50 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    All Grades
+{% endblock %}
+
+{% block main %}
+<div class="table-responsive">
+<table class="table">
+    <thead>
+<!--    <tr>
+            <th>Student ID</th>
+            <th colspan=60>Exercises</th>
+        </tr>
+-->
+        <tr>
+            <th></th>
+            {% for mod in range(1,4) %}
+                {% for num in range(1,21) %}
+                    <th>{{mod}}.{{num}}</th>
+                {% endfor %}
+            {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for id in grades %}
+        <tr>
+            <td>{{id}}</td>
+            {% for mod in range(1,4) %}
+                {% for num in range(1,21) %}
+                    {% if grades[id][mod][num] %}
+                    <td>{{grades[id][mod][num]}}</td>
+                    {% else %}
+                    <td> - </td>
+                    {% endif %}
+                {% endfor %}
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+
+<p></p>
+
+<form action="/" method="post">
+    <button class="btn btn-primary" type="submit">Download grades</button>
+</form>
+
+{% endblock %}
