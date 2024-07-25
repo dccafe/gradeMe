@@ -8,21 +8,19 @@ testcases.append([ [] ])
 # mod = 1, ex = 1
 testcases[1].append([])
 testcases[1][1] = [{
-    'description': 'vetor de elementos sem sinal',
-    'line': 17, 'grade': 3,
-    'result': [(12, 0x7F)], 
+    'description': 'vetor de elementos sem sinal', 
+    'input'      : [0x10, 0x7F, 0x73, 0x5A],
+    'output'     : 0x7F,
+    'grade'      : 3,
 },{
     'description': 'vetor de elementos negativos',
-    'line': 22, 'grade': 3,
-    'result': [(12, 0xFF)], 
+    'result': [(12, 0xFF)], 'grade': 3, 
 },{
     'description': 'vetor misto com e sem sinal',
-    'line': 27, 'grade': 3,
-    'result': [(12, 0xE4)], 
+    'result': [(12, 0xE4)], 'grade': 3, 
 },{
     'description': 'vetor vazio',
-    'line': 32, 'grade': 1,
-    'result': [(12, 0x00)], 
+    'result': [(12, 0x00)], 'grade': 1, 
 }]
 
 # mode = 1, ex = 2 
