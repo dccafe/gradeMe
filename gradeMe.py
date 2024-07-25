@@ -21,8 +21,7 @@ with open('period.txt') as f:
 app = Flask(__name__)
 init_db(app)
 
-# Configure Upload folder
-app.config['UPLOAD_FOLDER'    ] = 'upload\\src'
+# Configure session files
 app.config['SESSION_TYPE'     ] = 'filesystem'
 app.config['SESSION_PERMANENT'] = False
 Session(app)
@@ -105,10 +104,11 @@ def index():
     # Show student grades
     cursor = db.cursor()
     rows = cursor.execute("""
-        SELECT  mod, num, grade, details
-        FROM    exercise 
-        WHERE   user_id = ?
-        AND     period = ?""",
+        SELECT   mod, num, grade, details
+        FROM     exercise 
+        WHERE    user_id = ?
+        AND      period = ?
+        ORDER BY mod, num""",
         [session["user_id"], active_period]).fetchall()
 
     return render_template("myGrades.html", checks=rows)
@@ -136,19 +136,25 @@ def check():
     if not allowed_file(filename):
         return apology('Wrong file name or extension')
 
-    mod      = int(filename[1])
-    num      = int(filename[4:6])
-    newName  = session['user_id'] + '-' + filename
-    fullName = os.path.join(app.config['UPLOAD_FOLDER'], newName)
-    file.save(fullName)
+    mod  = int(filename[1])
+    num  = int(filename[4:6])
+
+    # Change filename to uniquely identify user
+    period = active_period.replace('/','-')
+    filename = session['user_id'] + '-' + period + '-' + filename
+    file.save(os.path.join('upload', filename))
+
+    checkFile = f'check-m{mod}ex{num:02d}.c'
+    sources   = [filename, checkFile]
+    binary    = session['user_id'] + '-' + period + '.elf'
 
     saveGrade(app, session['user_id'], mod, num, -1, active_period)
 
     def useMSP(uid, mod, num):
 
         mspLock.acquire()
-        compile(newName)
-        gdbmi = flash()
+        compile(sources, binary)
+        gdbmi = flash(binary)
         grade, details = runTests(gdbmi, mod, num)
         saveGrade(app, uid, mod, num, grade, active_period, details)
         mspLock.release()
@@ -276,7 +282,6 @@ def manage():
         ORDER BY period
         """).fetchall()
 
-    print(available_periods)
     #available_periods = ['2024/1', '2024/2']
 
     return render_template("manage.html", 
