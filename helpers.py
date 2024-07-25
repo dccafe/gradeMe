@@ -15,7 +15,7 @@ def allowed_file(filename):
     NamePtrn  = '^m[1-3]ex[0-9][0-9]$'
     nameMatch = match(NamePtrn, name)
 
-    ALLOWED_EXTENSIONS = {'S'}
+    ALLOWED_EXTENSIONS = ['S', 'asm', 'c']
 
     extMatch = ext in ALLOWED_EXTENSIONS
 
