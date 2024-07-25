@@ -1,96 +1,61 @@
 import os
 
-from subprocess import run
-from flask import flash as alert
+from subprocess             import run
+from pygdbmi.gdbcontroller  import GdbController
+from time                   import sleep
+from testcases              import testcases
 
-OBJDIR     = 'upload\\obj\\'
-SRCDIR     = 'upload\\src\\'
-BINDIR     = 'upload\\bin\\'
+GCCDIR = 'C:\\sdcard\\mspgcc\\'
+CCSDIR = 'C:\\sdcard\\ccs'
+CCXDIR = 'ccs\\tools\\compiler\\ti-cgt-msp430_21.6.1.LTS'
 
-GCCPATH    = 'C:\\sdcard\\mspgcc\\'
-GCCBIN     = GCCPATH + 'bin\\'
-GCCINC     = GCCPATH + 'include\\'
+cl430 = [f'{CCSDIR}\\{CCXDIR}\\bin\\cl430']
+cl430opt = f'-g -D__MSP430F5529__ -i{CCSDIR}\\ccs\\ccs_base\\msp430\\include -i{CCSDIR}\\{CCXDIR}\\include -i{CCSDIR}\\{CCXDIR}\\lib'.split()
+cl430lnk = '--run_linker lnk_msp430f5529.cmd'.split()
 
-msp430gcc  = GCCBIN + 'msp430-elf-gcc.exe'
-msp430ld   = GCCBIN + 'msp430-elf-ld.exe'
-msp430gdb  = GCCBIN + 'msp430-elf-gdb.exe'
+msp430gdb  = GCCDIR + '\\bin\\msp430-elf-gdb.exe'
 
-gccOptions = f'-c -I inc -I {GCCINC} -mmcu=msp430f5529 -O0 -msmall -g'.split()
-ldOptions  = f'          -L {GCCINC} -T {GCCINC}\\msp430f5529.ld'.split()
+def compile(sources, executable):
 
-def compile(filename):
+    print('Compiling files ', sources, 'into', executable)
+    cl430out = ['-o', executable]
+    cmd = cl430 + sources + cl430opt + cl430lnk + cl430out
+    run(cmd, cwd='upload')
 
-    basename = filename.split('.')[0].split('-')[1]
-    print(basename)
+def flash(binary):
 
-    SRCFILE = filename
-    CHKFILE = 'check-' + basename + '.c'
-
-    dirs = [OBJDIR, BINDIR]
-    for d in dirs:
-        if not os.path.exists(d):
-            os.makedirs(d)
-
-    cFiles     = [SRCDIR + CHKFILE]
-    asmFiles   = [SRCDIR + SRCFILE, SRCDIR + 'reset.S']
-    objFiles   = [f.replace('.c','.o').replace('src','obj') for f in cFiles] + \
-                 [f.replace('.S','.s').replace('src','obj') for f in asmFiles]
-
-    print('Compiling')
-    for (obj,src) in zip(objFiles, cFiles+asmFiles):
-        print(src)
-        p = run([msp430gcc] + gccOptions + ['-o', obj, src])
-
-    print('Linking')
-    p = run([msp430ld] + ldOptions + ['-o', BINDIR + 'msp430f5529.elf'] + objFiles)
-
-def flash():
-    from pygdbmi.gdbcontroller import GdbController
-
-    print('Flashing')
+    print('Flashing', binary)
 
     # Start gdb process
-    gdbmi = GdbController(command=[msp430gdb, BINDIR + 'msp430f5529.elf', '--interpreter=mi3'])
-    gdbmi.write('-target-select remote :55000', timeout_sec=10)
-    gdbmi.write('-target-download ', timeout_sec=10)
+    gdbmi = GdbController(command=[msp430gdb, 'upload\\' + binary, '--interpreter=mi3'])
+    gdbmi.write('-gdb-set mi-async on')
+    gdbmi.write('-target-select remote :55000', timeout_sec=5)
+    gdbmi.write('-target-download', timeout_sec=5)
     
     return gdbmi
 
-
-
 def runTests(gdbmi, mod, num):
 
-    def runUntil(line):
-        from time import sleep
+    gdbmi.write('-exec-continue', timeout_sec=2)
+    sleep(0.5)
+    gdbmi.write('-exec-interrupt')
+    output = gdbmi.write('-data-evaluate-expression grade', timeout_sec=10)
 
-        regs = [0]*16
+    result = int(output[-1]['payload']['value'].split()[0])
 
-        gdbmi.write(f'-break-insert {line}', timeout_sec=10)
-        gdbmi.write('-exec-continue', timeout_sec=10)
-        sleep(1)
-        result = gdbmi.write('-data-list-register-values x', timeout_sec=10)
-        for reg in result[-1]['payload']['register-values']:
-            regs[int(reg['number']) - 16] = int(reg['value'], 0)
-
-        return regs
-
-    print('testing')
-
-    from testcases import testcases
-
-    grade = 0
+    mask    = 1
+    grade   = 0
     details = ''
     for test in testcases[mod][num]:
         print(test['description'], end=' ')
-        regs = runUntil(test['line'])
-        check = []
-        for regNum, value in test['result']:
-            check.append(regs[regNum] == value)
-        if all(check):
+        if result & mask:
             grade += test['grade']
             details += str(test['grade']) 
-        else:
+        else: 
             details += '0'
+
+        mask <<= 1
+
         print('Grade: ', grade)
         details += '/' + str(test['grade']) + ': ' + test['description'] + '\n'
 
