@@ -11,7 +11,7 @@ CCXDIR = 'ccs\\tools\\compiler\\ti-cgt-msp430_21.6.1.LTS'
 
 cl430 = [f'{CCSDIR}\\{CCXDIR}\\bin\\cl430']
 cl430opt = f'-g -D__MSP430F5529__ -i{CCSDIR}\\ccs\\ccs_base\\msp430\\include -i{CCSDIR}\\{CCXDIR}\\include -i{CCSDIR}\\{CCXDIR}\\lib'.split()
-cl430lnk = '--run_linker lnk_msp430f5529.cmd'.split()
+cl430lnk = '--run_linker checks\\lnk_msp430f5529.cmd'.split()
 
 msp430gdb  = GCCDIR + '\\bin\\msp430-elf-gdb.exe'
 
