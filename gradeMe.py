@@ -144,9 +144,9 @@ def check():
     filename = session['user_id'] + '-' + period + '-' + filename
     file.save(os.path.join('upload', filename))
 
-    checkFile = f'check-m{mod}ex{num:02d}.c'
+    checkFile = f'checks\\check-m{mod}ex{num:02d}.c'
     sources   = [filename, checkFile]
-    binary    = session['user_id'] + '-' + period + '.elf'
+    binary    = 'bin\\' + session['user_id'] + '-' + period + '.elf'
 
     saveGrade(app, session['user_id'], mod, num, -1, active_period)
 
