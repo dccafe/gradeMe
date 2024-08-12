@@ -1,0 +1,54 @@
+Probe
+
+General command format: 
+  
+  module direction pin [options]
+
+module    - gpio, timer, serial, adc, status
+direction - read, write 
+pin       - Px.y, where x is the port and y is the pin
+options   - each module has a different option 
+          - [opt gpio   read ] [pu|pd]
+          - [opt gpio   write] <value>
+          - [opt timer  read ]
+          - [opt timer  write] f:<freq> d:<duty cycle>
+          - [opt serial read  Px.y UART]: _msg_ 
+          - [opt serial write Px.y UART]: _msg_ 
+          - [opt serial read  Px.y I2C ]: <addr>
+          - [opt serial write Px.y I2C ]: <addr> _msg_
+          - [opt serial read  Px.y SPI ]: <size>
+          - [opt serial write Px.y SPI ]: _msg_
+
+          - _msg_ : [s:<string>  | b:<size>:<binary data>]
+
+Strings are expected to end in 0x00 (\0), binary data requires size specification in number of bytes
+
+Examples: 
+
+echo on
+-> OK
+echo off
+-> OK
+
+gpio read P2.1
+-> OK 0
+gpio read P1.1
+-> OK 1
+
+timer write P4.7 f:128 d:25
+-> OK
+timer read P1.0
+-> OK f:4305 d:46
+timer write P4.7 f:1234567 d:25
+-> ERROR  Requested frequency is too high
+
+serial write P3.3 UART s:This is a test\0
+-> OK
+serial read  P3.4 I2C 0x32 
+-> OK message from MSP430
+
+adc read P6.0
+-> OK 0x679
+
+adc write P6.1
+-> ERROR command not available
